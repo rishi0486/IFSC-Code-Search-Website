@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFSC Code Finder - Instant Bank Details</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #3b82f6;
+            --accent-color: #f59e0b;
+            --text-dark: #1e293b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: var(--text-dark);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        /* Header Ad */
+        .header-ad {
+            background: linear-gradient(135deg, #1e40af, #2563eb);
+            padding: 12px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .ad-container {
+            max-width: 970px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 6rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: #f8fafc;
+            transform: skewY(-3deg);
+        }
+
+        .search-box {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        #ifscInput {
+            width: 100%;
+            height: 60px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.1rem;
+            padding: 0 20px;
+            margin-bottom: 15px;
+        }
+
+        .search-btn {
+            width: 100%;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--accent-color);
+            border: none;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Results Section */
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 4rem 0;
+            }
+            
+            #ifscInput {
+                height: 50px;
+                font-size: 1rem;
+            }
+            
+            .search-btn {
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header Ad -->
+<div class="header-ad">
+    <div class="ad-container">
+        <!-- AdSense Code Here -->
+    </div>
+</div>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="search-box">
+        <h1 style="text-align:center;margin-bottom:30px;">IFSC Code Finder</h1>
+        <input type="text" id="ifscInput" placeholder="Enter 11-digit IFSC Code (Example: SBIN0000001)">
+        <button class="search-btn" onclick="searchIFSC()">Search</button>
+    </div>
+</section>
+
+<!-- Main Content -->
+<main>
+    <div class="loader"></div>
+    <div id="results"></div>
+</main>
+
+<!-- Footer -->
+<footer style="background:#1e293b;color:white;padding:40px 20px;text-align:center;margin-top:50px;">
+    <p>© 2023 IFSC Code Finder. All rights reserved.</p>
+</footer>
+
+<script>
+async function searchIFSC() {
+    const ifsc = document.getElementById('ifscInput').value.trim().toUpperCase();
+    const loader = document.querySelector('.loader');
+    const resultsDiv = document.getElementById('results');
+
+    if(!ifsc || ifsc.length !== 11) {
+        alert('Please enter valid 11-digit IFSC code');
+        return;
+    }
+
+    try {
+        loader.style.display = 'block';
+        resultsDiv.innerHTML = '';
+        
+        const response = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
+        const data = await response.json();
+        
+        if(data.ERROR) throw new Error('Invalid IFSC Code');
+
+        resultsDiv.innerHTML = `
+            <div class="result-card">
+                <h2 style="color:${getComputedStyle(document.documentElement).getPropertyValue('--primary-color')}">
+                    ${data.BANK} - ${data.BRANCH}
+                </h2>
+                <div style="display:grid;gap:15px;">
+                    <div><strong>Address:</strong> ${data.ADDRESS}</div>
+                    <div><strong>City:</strong> ${data.CITY}</div>
+                    <div><strong>State:</strong> ${data.STATE}</div>
+                    ${data.CONTACT ? `<div><strong>Contact:</strong> ${data.CONTACT}</div>` : ''}
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        resultsDiv.innerHTML = `<div class="result-card" style="color:red;">Error: ${error.message}</div>`;
+    } finally {
+        loader.style.display = 'none';
+    }
+}
+
+// Enter key support
+document.getElementById('ifscInput').addEventListener('keypress', (e) => {
+    if(e.key === 'Enter') searchIFSC();
+});
+</script>
+
+</body>
+</html>
